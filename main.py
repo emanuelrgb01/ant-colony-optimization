@@ -4,10 +4,18 @@ from simulation import Simulation
 from line_follower import LineFollower
 from track import Track
 from utils import Vector2, Pose, Params, clamp
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, PIX2M, SIMULATION_SAMPLE_TIME, \
-    DRAW_FREQUENCY, DEFAULT_ACCELERATED_FACTOR, MAX_ACCELERATED_FACTOR, MAX_EPISODE_TIME
+from constants import (
+    SCREEN_WIDTH,
+    SCREEN_HEIGHT,
+    PIX2M,
+    SIMULATION_SAMPLE_TIME,
+    DRAW_FREQUENCY,
+    DEFAULT_ACCELERATED_FACTOR,
+    MAX_ACCELERATED_FACTOR,
+    MAX_EPISODE_TIME,
+)
 from math import pi, inf
-from particle_swarm_optimization import ParticleSwarmOptimization
+from ant_colony_optimization import AntColonyOptimization
 import matplotlib.pyplot as plt
 
 
@@ -18,7 +26,7 @@ def capture_screen():
     capture_window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     capture_window.fill((224, 255, 255))
     simulation.draw(capture_window)
-    pygame.image.save(window, 'line_follower_solution.jpeg')
+    pygame.image.save(window, "line_follower_solution.jpeg")
 
 
 def process_input():
@@ -33,9 +41,9 @@ def process_input():
         episode_time = 0
         quality = 0.0
         if training:
-            position = pso.get_position_to_evaluate()
+            position = aco.get_position_to_evaluate()
         else:
-            position = pso.get_best_position()
+            position = aco.get_best_position()
         controller_params = convert_particle_position_to_params(position)
         simulation.reset(controller_params)
     if keys[pygame.K_p] and not previous_keys[pygame.K_p]:
@@ -55,22 +63,22 @@ def plot_results():
     """
     Plots the results of the optimization.
     """
-    fig_format = 'png'
+    fig_format = "png"
     plt.figure()
     plt.semilogy(position_history)
-    plt.legend(['Linear Speed', 'Kp', 'Ki', 'Kd'])
-    plt.xlabel('Iteration')
-    plt.ylabel('Parameter Value')
-    plt.title('Parameters Convergence')
+    plt.legend(["Linear Speed", "Kp", "Ki", "Kd"])
+    plt.xlabel("Iteration")
+    plt.ylabel("Parameter Value")
+    plt.title("Parameters Convergence")
     plt.grid()
-    plt.savefig('line_parameters_convergence.%s' % fig_format, format=fig_format)
+    plt.savefig("line_parameters_convergence.%s" % fig_format, format=fig_format)
     plt.figure()
     plt.plot(quality_history)
-    plt.xlabel('Iteration')
-    plt.ylabel('Quality')
-    plt.title('Quality Convergence')
+    plt.xlabel("Iteration")
+    plt.ylabel("Quality")
+    plt.title("Quality Convergence")
     plt.grid()
-    plt.savefig('line_quality_convergence.%s' % fig_format, format=fig_format)
+    plt.savefig("line_quality_convergence.%s" % fig_format, format=fig_format)
     best_history = []
     best = -inf
     for q in quality_history:
@@ -79,11 +87,11 @@ def plot_results():
         best_history.append(best)
     plt.figure()
     plt.plot(best_history)
-    plt.xlabel('Iteration')
-    plt.ylabel('Best Quality')
-    plt.title('Best Quality Convergence')
+    plt.xlabel("Iteration")
+    plt.ylabel("Best Quality")
+    plt.title("Best Quality Convergence")
     plt.grid()
-    plt.savefig('line_best_convergence.%s' % fig_format, format=fig_format)
+    plt.savefig("line_best_convergence.%s" % fig_format, format=fig_format)
     plt.show()
 
 
@@ -91,26 +99,37 @@ def print_text():
     """
     Prints help text on screen.
     """
-    text = font.render('Episode time: %.1f/%.1f' % (episode_time, MAX_EPISODE_TIME), True, (0, 0, 0))
+    text = font.render(
+        "Episode time: %.1f/%.1f" % (episode_time, MAX_EPISODE_TIME), True, (0, 0, 0)
+    )
     window.blit(text, (round(0.1 * SCREEN_WIDTH), round(0.05 * SCREEN_HEIGHT)))
-    text = font.render('Training iteration: ' + str(training_iteration), True, (0, 0, 0))
+    text = font.render(
+        "Training iteration: " + str(training_iteration), True, (0, 0, 0)
+    )
     window.blit(text, (round(0.6 * SCREEN_WIDTH), round(0.05 * SCREEN_HEIGHT)))
-    text = font.render('Accelerated factor: ' + str(accelerated_factor) + 'x', True, (0, 0, 0))
+    text = font.render(
+        "Accelerated factor: " + str(accelerated_factor) + "x", True, (0, 0, 0)
+    )
     window.blit(text, (round(0.6 * SCREEN_WIDTH), round(0.1 * SCREEN_HEIGHT)))
-    text = font.render('Training? ' + str(training), True, (0, 0, 0))
-    window.blit(text, (round(0.6 * SCREEN_WIDTH), round(0.15* SCREEN_HEIGHT)))
-    text = font.render('Accelerated mode? ' + str(accelerated_mode), True, (0, 0, 0))
+    text = font.render("Training? " + str(training), True, (0, 0, 0))
+    window.blit(text, (round(0.6 * SCREEN_WIDTH), round(0.15 * SCREEN_HEIGHT)))
+    text = font.render("Accelerated mode? " + str(accelerated_mode), True, (0, 0, 0))
     window.blit(text, (round(0.6 * SCREEN_WIDTH), round(0.2 * SCREEN_HEIGHT)))
-    text = font.render('A: activate/deactivate accelerated mode', True, (0, 0, 0))
+    text = font.render("A: activate/deactivate accelerated mode", True, (0, 0, 0))
     window.blit(text, (round(0.1 * SCREEN_WIDTH), round(0.8 * SCREEN_HEIGHT)))
-    text = font.render('T: activate/deactivate training', True, (0, 0, 0))
+    text = font.render("T: activate/deactivate training", True, (0, 0, 0))
     window.blit(text, (round(0.1 * SCREEN_WIDTH), round(0.85 * SCREEN_HEIGHT)))
-    text = font.render('P: plot optimization results', True, (0, 0, 0))
+    text = font.render("P: plot optimization results", True, (0, 0, 0))
     window.blit(text, (round(0.1 * SCREEN_WIDTH), round(0.9 * SCREEN_HEIGHT)))
 
 
 def format_position(position):
-    return '[%.6f, %.6f, %.6f, %.6f]' % (position[0], position[1], position[2], position[3])
+    return "[%.6f, %.6f, %.6f, %.6f]" % (
+        position[0],
+        position[1],
+        position[2],
+        position[3],
+    )
 
 
 def convert_particle_position_to_params(position):
@@ -141,14 +160,36 @@ def create_simple_track():
     padding_y = screen_height_m - track_height
     padding_x = screen_width_m - track_width
     track = Track()
-    track.add_line_piece(Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0),
-                         Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, padding_y / 2.0))
-    track.add_arc_piece(Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, padding_y / 2.0 + track_height / 2.0),
-                        track_height / 2.0, -pi / 2.0, pi / 2.0)
-    track.add_line_piece(Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, screen_height_m - padding_y / 2.0),
-                         Vector2(padding_x / 2.0 + track_height / 2.0, screen_height_m - padding_y / 2.0))
-    track.add_arc_piece(Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + track_height / 2.0),
-                        track_height / 2.0, pi / 2.0, 3.0 * pi / 2.0)
+    track.add_line_piece(
+        Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0),
+        Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, padding_y / 2.0),
+    )
+    track.add_arc_piece(
+        Vector2(
+            screen_width_m - padding_x / 2.0 - track_height / 2.0,
+            padding_y / 2.0 + track_height / 2.0,
+        ),
+        track_height / 2.0,
+        -pi / 2.0,
+        pi / 2.0,
+    )
+    track.add_line_piece(
+        Vector2(
+            screen_width_m - padding_x / 2.0 - track_height / 2.0,
+            screen_height_m - padding_y / 2.0,
+        ),
+        Vector2(
+            padding_x / 2.0 + track_height / 2.0, screen_height_m - padding_y / 2.0
+        ),
+    )
+    track.add_arc_piece(
+        Vector2(
+            padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + track_height / 2.0
+        ),
+        track_height / 2.0,
+        pi / 2.0,
+        3.0 * pi / 2.0,
+    )
     return track
 
 
@@ -165,25 +206,76 @@ def create_complex_track():
     padding_y = screen_height_m - track_height
     padding_x = screen_width_m - track_width
     track = Track()
-    track.add_line_piece(Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0),
-                         Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, padding_y / 2.0))
-    track.add_arc_piece(Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, padding_y / 2.0 + track_height / 2.0),
-                        track_height / 2.0, -pi / 2.0, pi / 2.0)
-    track.add_line_piece(Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, screen_height_m - padding_y / 2.0),
-                         Vector2(padding_x / 2.0 + track_height / 4.0, screen_height_m - padding_y / 2.0))
-    track.add_arc_piece(Vector2(padding_x / 2.0 + track_height / 4.0, padding_y / 2.0 + 3.0 * track_height / 4.0),
-                        track_height / 4.0, pi / 2.0, 3.0 * pi / 2.0)
-    track.add_line_piece(Vector2(padding_x / 2.0 + track_height / 4.0, padding_y / 2.0 + track_height / 2.0),
-                         Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + track_height / 2.0))
-    track.add_arc_piece(Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + 3.0 * track_height / 8.0),
-                        track_height / 8.0, -pi / 2.0, pi / 2.0)
-    track.add_line_piece(Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + track_height / 4.0),
-                         Vector2(padding_x / 2.0 + track_height / 8.0, padding_y / 2.0 + track_height / 4.0))
-    track.add_arc_piece(Vector2(padding_x / 2.0 + track_height / 8.0, padding_y / 2.0 + track_height / 8.0),
-                        track_height / 8.0, pi / 2.0, 3.0 * pi / 2.0)
-    track.add_line_piece(Vector2(padding_x / 2.0 + track_height / 8.0, padding_y / 2.0),
-                         Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0))
+    track.add_line_piece(
+        Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0),
+        Vector2(screen_width_m - padding_x / 2.0 - track_height / 2.0, padding_y / 2.0),
+    )
+    track.add_arc_piece(
+        Vector2(
+            screen_width_m - padding_x / 2.0 - track_height / 2.0,
+            padding_y / 2.0 + track_height / 2.0,
+        ),
+        track_height / 2.0,
+        -pi / 2.0,
+        pi / 2.0,
+    )
+    track.add_line_piece(
+        Vector2(
+            screen_width_m - padding_x / 2.0 - track_height / 2.0,
+            screen_height_m - padding_y / 2.0,
+        ),
+        Vector2(
+            padding_x / 2.0 + track_height / 4.0, screen_height_m - padding_y / 2.0
+        ),
+    )
+    track.add_arc_piece(
+        Vector2(
+            padding_x / 2.0 + track_height / 4.0,
+            padding_y / 2.0 + 3.0 * track_height / 4.0,
+        ),
+        track_height / 4.0,
+        pi / 2.0,
+        3.0 * pi / 2.0,
+    )
+    track.add_line_piece(
+        Vector2(
+            padding_x / 2.0 + track_height / 4.0, padding_y / 2.0 + track_height / 2.0
+        ),
+        Vector2(
+            padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + track_height / 2.0
+        ),
+    )
+    track.add_arc_piece(
+        Vector2(
+            padding_x / 2.0 + track_height / 2.0,
+            padding_y / 2.0 + 3.0 * track_height / 8.0,
+        ),
+        track_height / 8.0,
+        -pi / 2.0,
+        pi / 2.0,
+    )
+    track.add_line_piece(
+        Vector2(
+            padding_x / 2.0 + track_height / 2.0, padding_y / 2.0 + track_height / 4.0
+        ),
+        Vector2(
+            padding_x / 2.0 + track_height / 8.0, padding_y / 2.0 + track_height / 4.0
+        ),
+    )
+    track.add_arc_piece(
+        Vector2(
+            padding_x / 2.0 + track_height / 8.0, padding_y / 2.0 + track_height / 8.0
+        ),
+        track_height / 8.0,
+        pi / 2.0,
+        3.0 * pi / 2.0,
+    )
+    track.add_line_piece(
+        Vector2(padding_x / 2.0 + track_height / 8.0, padding_y / 2.0),
+        Vector2(padding_x / 2.0 + track_height / 2.0, padding_y / 2.0),
+    )
     return track
+
 
 # Defining controller parameters
 controller_params = Params()
@@ -203,9 +295,11 @@ sensor_params = Params()
 sensor_params.sensor_range = 0.015
 sensor_params.num_sensors = 7
 sensor_params.array_width = 0.06
-line_follower = LineFollower(Pose(0.5, 0.5, 45.0 * pi / 180.0), controller_params, robot_params, sensor_params)
+line_follower = LineFollower(
+    Pose(0.5, 0.5, 45.0 * pi / 180.0), controller_params, robot_params, sensor_params
+)
 
-# Defining PSO hyperparameters
+# Defining aco hyperparameters
 hyperparams = Params()
 hyperparams.num_particles = 40
 hyperparams.inertia_weight = 0.7
@@ -213,7 +307,7 @@ hyperparams.cognitive_parameter = 0.6
 hyperparams.social_parameter = 0.8
 lower_bound = np.array([0.0, 10.0, 0.0, 0.0])
 upper_bound = np.array([0.9, 200.0, 1300.0, 30.0])
-pso = ParticleSwarmOptimization(hyperparams, lower_bound, upper_bound)
+aco = AntColonyOptimization(hyperparams, lower_bound, upper_bound)
 
 # Creating track
 # Switch to simple track if you are having trouble to make the robot learn in the complex track
@@ -227,11 +321,13 @@ pygame.init()
 window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Lab 4 - Line Follower Optimization")
 clock = pygame.time.Clock()
-font = pygame.font.SysFont('Arial', 20, True)
+font = pygame.font.SysFont("Arial", 20, True)
 
 # Initializing auxiliary variables
 run = True  # if the program is running
-accelerated_mode = False  # if the execution is in accelerated mode (faster than realtime)
+accelerated_mode = (
+    False  # if the execution is in accelerated mode (faster than realtime)
+)
 training = True  # if the robot is training (the optimization is executing)
 draw_path = True
 # Obs.: if the robot is not training, the best solution found so far will be shown
@@ -247,7 +343,7 @@ position_history = []  # history of evaluated particle positions
 quality_history = []  # history of evaluated qualities
 
 # Getting the first parameters to evaluate
-position = pso.get_position_to_evaluate()
+position = aco.get_position_to_evaluate()
 controller_params = convert_particle_position_to_params(position)
 simulation.reset(controller_params)
 
@@ -280,8 +376,15 @@ while run:
         # If the episode has reached its end
         if episode_time >= MAX_EPISODE_TIME:
             # Prints the results of the current training iteration
-            print('iter: ' + str(training_iteration) +
-                  ', ' + 'params: ' + format_position(position) + ', quality: ' + str(quality))
+            print(
+                "iter: "
+                + str(training_iteration)
+                + ", "
+                + "params: "
+                + format_position(position)
+                + ", quality: "
+                + str(quality)
+            )
             if training:
                 # If the robot is training, update the optimization algorithm
                 training_iteration += 1
@@ -289,11 +392,11 @@ while run:
                 position_history.append(np.array(position))
                 quality_history.append(quality)
                 # Update the optimization algorithm
-                pso.notify_evaluation(quality)
-                position = pso.get_position_to_evaluate()
+                aco.notify_evaluation(quality)
+                position = aco.get_position_to_evaluate()
             else:
                 # If the robot is not training, evaluate the best parameters found so far
-                position = pso.get_best_position()
+                position = aco.get_best_position()
                 capture_screen()  # Captures the screen at the end of the episode
             # Resetting the simulation to evaluate the new position
             episode_time = 0.0
