@@ -25,8 +25,6 @@ class Ant:
             random.uniform(lower_bound[idx], upper_bound[idx])
             for idx in range(self.dimension)
         ]
-        # for idx in range(self.dimension):
-        #    self.position[idx] = random.uniform(lower_bound[idx], upper_bound[idx])
 
         self.path = [self.position]
         self.reward = -inf
@@ -80,8 +78,6 @@ class AntColonyOptimization:
         :return: the best position.
         :rtype: numpy array.
         """
-        # Todo
-
         return self.best_positions[np.argmax(self.best_rewards)]
 
     def get_best_value(self):
@@ -91,7 +87,6 @@ class AntColonyOptimization:
         :return: value of the best position.
         :rtype: float.
         """
-        # Todo
         return np.max(self.best_rewards)
 
     def get_position_to_evaluate(self):
@@ -101,14 +96,12 @@ class AntColonyOptimization:
         :return: position to evaluate.
         :rtype: numpy array.
         """
-        # Todo
         return self.ants[self.current_ant].position
 
     def advance_generation(self):
         """
         Advances the generation of Ants. Auxiliary method to be used by notify_evaluation().
         """
-        # Todo
         k = self.num_best_solutions
         indexes = np.argsort(self.rewards_current_generation)[::-1]
         sorted_generation_rewards = np.sort(self.rewards_current_generation)
@@ -128,6 +121,10 @@ class AntColonyOptimization:
         self.positions_current_generation = []
         self.rewards_current_generation = []
 
+        for ant in self.ants:
+            # todo: update ant position
+            pass
+
     def notify_evaluation(self, value):
         """
         Notifies the algorithm that a ant position evaluation was completed.
@@ -135,8 +132,6 @@ class AntColonyOptimization:
         :param value: quality of the ant position.
         :type value: float.
         """
-        # Todo
-
         ant = self.ants[self.current_ant]
         self.positions_current_generation.append(ant.position)
         self.rewards_current_generation.append(value)
