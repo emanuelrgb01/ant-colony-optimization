@@ -81,7 +81,8 @@ class AntColonyOptimization:
         :rtype: numpy array.
         """
         # Todo
-        pass
+
+        return self.best_positions[np.argmax(self.best_rewards)]
 
     def get_best_value(self):
         """
@@ -91,7 +92,7 @@ class AntColonyOptimization:
         :rtype: float.
         """
         # Todo
-        pass
+        return np.max(self.best_rewards)
 
     def get_position_to_evaluate(self):
         """
@@ -101,14 +102,31 @@ class AntColonyOptimization:
         :rtype: numpy array.
         """
         # Todo
-        pass
+        return self.ants[self.current_ant].position
 
     def advance_generation(self):
         """
-        Advances the generation of particles. Auxiliary method to be used by notify_evaluation().
+        Advances the generation of Ants. Auxiliary method to be used by notify_evaluation().
         """
         # Todo
-        pass
+        k = self.num_best_solutions
+        indexes = np.argsort(self.rewards_current_generation)[::-1]
+        sorted_generation_rewards = np.sort(self.rewards_current_generation)
+        sorted_generation_positions = self.positions_current_generation[indexes]
+
+        merged_best_rewards = self.best_rewards + sorted_generation_rewards[:k]
+        merged_best_positions = self.best_positions + sorted_generation_positions[:k]
+
+        indexes = np.argsort(merged_best_positions)[::-1]
+
+        sorted_merged_best_rewards = np.sort(merged_best_rewards)
+        sorted_merged_best_positions = self.merged_best_positions[indexes]
+
+        self.best_rewards = sorted_merged_best_rewards[:k]
+        self.best_positions = sorted_merged_best_positions[:k]
+
+        self.positions_current_generation = []
+        self.rewards_current_generation = []
 
     def notify_evaluation(self, value):
         """
@@ -120,8 +138,9 @@ class AntColonyOptimization:
         # Todo
 
         ant = self.ants[self.current_ant]
-        self.positions_current_generation(ant.position)
+        self.positions_current_generation.append(ant.position)
         self.rewards_current_generation.append(value)
+
         self.current_ant += 1
         if self.current_ant == self.num_ants:
             self.current_ant = 0
