@@ -5,41 +5,73 @@ from math import inf
 
 class Ant:
     """
-    Represents a particle of the Particle Swarm Optimization algorithm.
+    Represents an Ant of the Ant Colony Optimization algorithm.
     """
 
-    def __init__(self, params):
+    def __init__(self, lower_bound, upper_bound):
         """
-        Creates a particle of the Particle Swarm Optimization algorithm.
+        Creates an Ant of the Ant Colony Optimization algorithm.
 
-        :param lower_bound: lower bound of the particle position.
+        :param lower_bound: lower bound of the ant position.
         :type lower_bound: numpy array.
-        :param upper_bound: upper bound of the particle position.
+        :param upper_bound: upper bound of the ant position.
         :type upper_bound: numpy array.
         """
         # Todo
-        pass
+        self.dimension = np.size(lower_bound)
+        self.position = np.zeros(self.dimension)
+
+        self.position = [
+            random.uniform(lower_bound[idx], upper_bound[idx])
+            for idx in range(self.dimension)
+        ]
+        # for idx in range(self.dimension):
+        #    self.position[idx] = random.uniform(lower_bound[idx], upper_bound[idx])
+
+        self.path = [self.position]
+        self.reward = -inf
 
 
 class AntColonyOptimization:
     """
-    Represents the Particle Swarm Optimization algorithm.
+    Represents the Ant Colony Optimization algorithm.
     Hyperparameters:
-        inertia_weight: inertia weight.
-        cognitive_parameter: cognitive parameter.
-        social_parameter: social parameter.
+        num_ants: number of ants.
+        evaporation_rate: evaporation rate.
+        pheromone_intensity: pheromone intensity.
+        alpha: pheromone influence.
+        beta: heuristic influence.
+        num_best_solutions: number of solutions used to build Gaussian Mixture
 
-    :param hyperparams: hyperparameters used by Particle Swarm Optimization.
+    :param hyperparams: hyperparameters used by Ant Colony Optimization.
     :type hyperparams: Params.
-    :param lower_bound: lower bound of particle position.
+    :param lower_bound: lower bound of ant position.
     :type lower_bound: numpy array.
-    :param upper_bound: upper bound of particle position.
+    :param upper_bound: upper bound of ant position.
     :type upper_bound: numpy array.
     """
 
-    def __init__(self, params):
-        # Todo
-        pass
+    def __init__(self, hyperparams, lower_bound, upper_bound):
+        self.lower_bound = lower_bound
+        self.upper_bound = upper_bound
+
+        self.num_ants = hyperparams.num_ants
+        self.num_best_solutions = hyperparams.num_best_solutions
+        self.evaporation_rate = hyperparams.evaporation_rate
+        self.pheromone_intensity = hyperparams.pheromone_intensity
+        self.alpha = hyperparams.alpha
+        self.beta = hyperparams.beta
+
+        self.ants = [
+            Ant(self.lower_bound, self.upper_bound) for _ in range(self.num_ants)
+        ]
+
+        self.current_ant = 0
+        self.positions_current_generation = []
+        self.rewards_current_generation = []
+
+        self.best_positions = [None for _ in range(self.num_best_solutions)]
+        self.best_rewards = [-inf for _ in range(self.num_best_solutions)]
 
     def get_best_position(self):
         """
@@ -78,12 +110,19 @@ class AntColonyOptimization:
         # Todo
         pass
 
-    def notify_evaluation(self, param):
+    def notify_evaluation(self, value):
         """
-        Notifies the algorithm that a particle position evaluation was completed.
+        Notifies the algorithm that a ant position evaluation was completed.
 
-        :param value: quality of the particle position.
+        :param value: quality of the ant position.
         :type value: float.
         """
         # Todo
-        pass
+
+        ant = self.ants[self.current_ant]
+        self.positions_current_generation(ant.position)
+        self.rewards_current_generation.append(value)
+        self.current_ant += 1
+        if self.current_ant == self.num_ants:
+            self.current_ant = 0
+            self.advance_generation()
