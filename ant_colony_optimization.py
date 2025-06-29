@@ -49,6 +49,7 @@ class AntColonyOptimization:
     def __init__(self, hyperparams, lower_bound, upper_bound):
         self.lower_bound = lower_bound
         self.upper_bound = upper_bound
+        self.dimension = len(lower_bound)
 
         self.num_ants = hyperparams.num_ants
         self.num_best_solutions = hyperparams.num_best_solutions
@@ -63,8 +64,8 @@ class AntColonyOptimization:
         self.positions_current_generation = []
         self.rewards_current_generation = []
 
-        self.best_positions = [None for _ in range(self.num_best_solutions)]
-        self.best_rewards = [-inf for _ in range(self.num_best_solutions)]
+        self.best_positions = np.zeros((self.num_best_solutions, self.dimension))
+        self.best_rewards = np.full(self.num_best_solutions, -inf)
 
     def get_best_position(self):
         """

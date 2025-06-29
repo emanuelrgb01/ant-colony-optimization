@@ -12,10 +12,10 @@ def quality_function(x):
 
 # Defining hyperparameters for the algorithm
 hyperparams = Params()
-hyperparams.num_particles = 40
-hyperparams.inertia_weight = 0.7
-hyperparams.cognitive_parameter = 0.6
-hyperparams.social_parameter = 0.8
+hyperparams.num_ants = 40
+hyperparams.num_best_solutions = int(0.3 * hyperparams.num_ants)
+hyperparams.evaporation_rate = 1.0
+hyperparams.q = 0.1
 # Defining the lower and upper bounds
 lower_bound = np.array([0.0, 0.0, 0.0])
 upper_bound = np.array([3.0, 3.0, 3.0])
@@ -24,7 +24,7 @@ position_history = []
 quality_history = []
 # Number of function evaluations will be 1000 times the number of particles,
 # i.e. aco will be executed by 1000 generations
-num_evaluations = 1000 * hyperparams.num_particles
+num_evaluations = 1000 * hyperparams.num_ants
 for i in range(num_evaluations):
     position = aco.get_position_to_evaluate()
     value = quality_function(position)
