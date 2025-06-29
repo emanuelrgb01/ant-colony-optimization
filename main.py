@@ -301,10 +301,10 @@ line_follower = LineFollower(
 
 # Defining aco hyperparameters
 hyperparams = Params()
-hyperparams.num_particles = 40
-hyperparams.inertia_weight = 0.7
-hyperparams.cognitive_parameter = 0.6
-hyperparams.social_parameter = 0.8
+hyperparams.num_ants = 40
+hyperparams.num_best_solutions = int(0.3 * hyperparams.num_ants)
+hyperparams.evaporation_rate = 1.0
+hyperparams.q = 0.1
 lower_bound = np.array([0.0, 10.0, 0.0, 0.0])
 upper_bound = np.array([0.9, 200.0, 1300.0, 30.0])
 aco = AntColonyOptimization(hyperparams, lower_bound, upper_bound)
