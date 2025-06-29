@@ -26,7 +26,7 @@ def capture_screen():
     capture_window = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     capture_window.fill((224, 255, 255))
     simulation.draw(capture_window)
-    pygame.image.save(window, "line_follower_solution.jpeg")
+    pygame.image.save(window, "results/line_follower_solution.jpeg")
 
 
 def process_input():
@@ -71,14 +71,16 @@ def plot_results():
     plt.ylabel("Parameter Value")
     plt.title("Parameters Convergence")
     plt.grid()
-    plt.savefig("line_parameters_convergence.%s" % fig_format, format=fig_format)
+    plt.savefig(
+        "results/line_parameters_convergence.%s" % fig_format, format=fig_format
+    )
     plt.figure()
     plt.plot(quality_history)
     plt.xlabel("Iteration")
     plt.ylabel("Quality")
     plt.title("Quality Convergence")
     plt.grid()
-    plt.savefig("line_quality_convergence.%s" % fig_format, format=fig_format)
+    plt.savefig("results/line_quality_convergence.%s" % fig_format, format=fig_format)
     best_history = []
     best = -inf
     for q in quality_history:
@@ -91,7 +93,7 @@ def plot_results():
     plt.ylabel("Best Quality")
     plt.title("Best Quality Convergence")
     plt.grid()
-    plt.savefig("line_best_convergence.%s" % fig_format, format=fig_format)
+    plt.savefig("results/line_best_convergence.%s" % fig_format, format=fig_format)
     plt.show()
 
 
