@@ -96,6 +96,39 @@ class AntColonyOptimization:
         """
         return self.ants[self.current_ant].position
 
+    def _update_solutions(self):
+        """
+        Updates the best positions and rewards after generation.
+        """
+        current_pos_arr = np.array(self.positions_current_generation)
+        current_rew_arr = np.array(self.rewards_current_generation)
+
+        # Combine the valid old best solutions and the new ones
+        valid_best_indices = np.where(self.best_rewards > -inf)[0]
+
+        if valid_best_indices.size > 0:
+            combined_positions = np.vstack(
+                (self.best_positions[valid_best_indices], current_pos_arr)
+            )
+            combined_rewards = np.hstack(
+                (self.best_rewards[valid_best_indices], current_rew_arr)
+            )
+        else:
+            combined_positions = current_pos_arr
+            combined_rewards = current_rew_arr
+
+        sorted_indices = np.argsort(combined_rewards)[::-1]
+
+        num_to_keep = min(self.num_best_solutions, len(sorted_indices))
+        top_indices = sorted_indices[:num_to_keep]
+
+        # Populate the archive with the best-ranked solutions found in combined and sorted list
+        self.best_rewards = np.full(self.num_best_solutions, -inf)
+        self.best_positions = np.zeros((self.num_best_solutions, self.dimension))
+
+        self.best_rewards[:num_to_keep] = combined_rewards[top_indices]
+        self.best_positions[:num_to_keep] = combined_positions[top_indices]
+
     def _update_ant_positions(self):
         """
         Main logic of ACO_R: Updates the position of all ants for the next generation.
@@ -134,32 +167,7 @@ class AntColonyOptimization:
         """
         Advances the generation of Ants. Auxiliary method to be used by notify_evaluation().
         """
-        current_pos_arr = np.array(self.positions_current_generation)
-        current_rew_arr = np.array(self.rewards_current_generation)
-
-        valid_best_indices = np.where(self.best_rewards > -inf)[0]
-
-        if valid_best_indices.size > 0:
-            combined_positions = np.vstack(
-                (self.best_positions[valid_best_indices], current_pos_arr)
-            )
-            combined_rewards = np.hstack(
-                (self.best_rewards[valid_best_indices], current_rew_arr)
-            )
-        else:
-            combined_positions = current_pos_arr
-            combined_rewards = current_rew_arr
-
-        sorted_indices = np.argsort(combined_rewards)[::-1]
-
-        num_to_keep = min(self.num_best_solutions, len(sorted_indices))
-        top_indices = sorted_indices[:num_to_keep]
-
-        self.best_rewards = np.full(self.num_best_solutions, -inf)
-        self.best_positions = np.zeros((self.num_best_solutions, self.dimension))
-
-        self.best_rewards[:num_to_keep] = combined_rewards[top_indices]
-        self.best_positions[:num_to_keep] = combined_positions[top_indices]
+        self._update_solutions()
 
         self.positions_current_generation = []
         self.rewards_current_generation = []
