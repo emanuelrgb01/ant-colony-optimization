@@ -1,0 +1,13 @@
+[project]
+name = "ant-colony-optimization"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.3,<3",
+    "pygame>=2.6,<3",
+    "matplotlib>=3.10,<4",
+]
+
+[tool.uv]
+# This repository is a collection of runnable scripts, not an installable package.
+package = false
